@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import { RoomService } from './services/RoomService';
 import dotenv from 'dotenv';
+import path from 'path';
 
 dotenv.config();
 
@@ -39,6 +40,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../../../client/build')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -485,6 +489,11 @@ io.on('connection', (socket) => {
   socket.on('error', (error) => {
     console.error('Socket error for client:', socket.id, error);
   });
+});
+
+// Handle React routing, return all requests to React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../../client/build/index.html'));
 });
 
 const PORT = process.env.PORT || 3001;
