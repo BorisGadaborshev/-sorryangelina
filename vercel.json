@@ -1,28 +1,31 @@
 {
   "version": 2,
-  "buildCommand": "cd client && npm install && npm run build",
-  "outputDirectory": "client/build",
   "builds": [
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build",
+        "buildCommand": "npm run build"
+      }
+    },
     {
       "src": "server/src/server.ts",
       "use": "@vercel/node"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/socket.io/(.*)",
-      "dest": "/server/src/server.ts"
+      "source": "/socket.io/(.*)",
+      "destination": "/server/src/server.ts"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/server/src/server.ts"
+      "source": "/api/(.*)",
+      "destination": "/server/src/server.ts"
     },
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/client/build/index.html"
     }
   ]
 } 
