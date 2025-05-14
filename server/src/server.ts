@@ -33,7 +33,7 @@ const httpServer = createServer(app);
 // Настраиваем CORS для Express с учетом Vercel
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? "https://sorryangelina.vercel.app"
+    ? ['https://sorryangelina.vercel.app', 'https://sorryangelina-git-main-borisgadaborshevs-projects.vercel.app']
     : "http://localhost:3000",
   methods: ['GET', 'POST'],
   credentials: true
@@ -42,7 +42,9 @@ app.use(cors({
 app.use(express.json());
 
 // Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../../../client/build')));
+const clientBuildPath = path.join(__dirname, '../../../client/build');
+console.log('Client build path:', clientBuildPath);
+app.use(express.static(clientBuildPath));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -493,7 +495,8 @@ io.on('connection', (socket) => {
 
 // Handle React routing, return all requests to React app
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../../client/build/index.html'));
+  console.log('Serving index.html for path:', req.path);
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
 const PORT = process.env.PORT || 3001;

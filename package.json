@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "cd client && npm install && npm run build",
-    "vercel-build": "npm install && cd client && npm install && npm run build && cd ../server && npm install"
+    "vercel-build": "npm install && cd client && npm install && npm run build && cd ../server && npm install && mkdir -p public && cp -r ../client/build/* public/"
   },
   "dependencies": {
     "@types/express": "^4.17.21",

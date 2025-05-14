@@ -6,11 +6,10 @@
       "use": "@vercel/node"
     },
     {
-      "src": "client/package.json",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build",
-        "buildCommand": "npm run build"
+        "zeroConfig": true
       }
     }
   ],
@@ -24,11 +23,8 @@
       "dest": "/server/src/server.ts"
     },
     {
-      "handle": "filesystem"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/server/src/server.ts"
     }
   ]
 } 
