@@ -10,20 +10,8 @@
       "destination": "/api/server"
     },
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "/manifest.json",
-      "dest": "/manifest.json"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/favicon.ico"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/$1"
     }
   ]
 } 
