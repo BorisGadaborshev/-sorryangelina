@@ -29,9 +29,11 @@ mongoose.connection.on('error', (err) => {
 const app = express();
 const httpServer = createServer(app);
 
-// Настраиваем CORS для Express
+// Настраиваем CORS для Express с учетом Vercel
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: process.env.NODE_ENV === 'production' 
+    ? "https://sorryangelina.vercel.app"
+    : "http://localhost:3000",
   methods: ['GET', 'POST'],
   credentials: true
 }));
@@ -74,14 +76,16 @@ app.get('/api/rooms', async (req, res) => {
   }
 });
 
-// Настраиваем Socket.IO с расширенными опциями
+// Настраиваем Socket.IO с учетом Vercel
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.NODE_ENV === 'production'
+      ? "https://sorryangelina.vercel.app"
+      : "http://localhost:3000",
     methods: ["GET", "POST"],
-    credentials: true,
-    allowedHeaders: ["my-custom-header"]
+    credentials: true
   },
+  path: "/socket.io/",
   pingTimeout: 60000,
   pingInterval: 25000,
   connectTimeout: 45000,
