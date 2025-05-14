@@ -3,6 +3,7 @@ import cors from 'cors';
 import { Server as SocketServer } from 'socket.io';
 import { createServer } from 'http';
 import '../server/src/server';
+import { VercelRequest, VercelResponse } from '@vercel/node';
 
 const app = express();
 
@@ -36,4 +37,8 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-export default app; 
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // This function exists just to satisfy Vercel's requirements
+  // The actual server is imported and started above
+  res.status(200).end();
+} 

@@ -1,19 +1,13 @@
 {
   "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "server/src/server.ts",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/socket.io/(.*)",
-      "dest": "/server/src/server.ts"
+      "source": "/socket.io/(.*)",
+      "destination": "/api/server"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/server/src/server.ts"
+      "source": "/api/(.*)",
+      "destination": "/api/server"
     },
     {
       "src": "/static/(.*)",
