@@ -1,4 +1,4 @@
-// Postgres access helpers
+// PostgreSQL does not use Mongoose models; this file provides typed data access helpers.
 import { pool } from '../config/database';
 import { Room, RoomDocument, User, Card } from '../types';
 
@@ -49,7 +49,8 @@ export const RoomModel = {
     return { id: roomRow.id, password: roomRow.password, owner: roomRow.owner, phase: roomRow.phase, users, cards };
   },
 
-  async findOneAndUpdate(filter: any, update: any, options?: { new?: boolean }): Promise<RoomDocument | null> {
+  async findOneAndUpdate(filter: any, update: any, _options?: { new?: boolean }): Promise<RoomDocument | null> {
+    // Only supports the usages in RoomService
     const roomId: string = filter.id;
     const client = await pool.connect();
     try {
@@ -60,11 +61,14 @@ export const RoomModel = {
         await client.query('update rooms set phase=$1, updated_at=now() where id=$2', [update.phase, roomId]);
       }
 
+      // $set operations
       if (update.$set) {
         if (typeof update.$set.phase !== 'undefined') {
           await client.query('update rooms set phase=$1, updated_at=now() where id=$2', [update.$set.phase, roomId]);
         }
         if (update.$set['users.$.id'] || update.$set['users.$.role'] || update.$set['users.$.isReady'] || update.$set['users.$.is_ready']) {
+          // Resolve user id from filter
+          const filterUserId = filter['users.id'] || filter['users.name'];
           if (filter['users.id']) {
             const newId = update.$set['users.$.id'];
             const role = update.$set['users.$.role'];
@@ -74,6 +78,9 @@ export const RoomModel = {
             const newId = update.$set['users.$.id'];
             const role = update.$set['users.$.role'];
             await client.query('update room_users set id = coalesce($1, id), role = coalesce($2, role) where room_id=$3 and name=$4', [newId ?? null, role ?? null, roomId, filter['users.name']]);
+          } else if (filterUserId) {
+            // Fallback
+            await client.query('update room_users set id=$1 where room_id=$2 and id=$3', [update.$set['users.$.id'], roomId, filterUserId]);
           }
         }
         if (update.$set['cards.$.text'] || update.$set['cards.$.column']) {
@@ -92,6 +99,7 @@ export const RoomModel = {
         }
       }
 
+      // $addToSet operations
       if (update.$addToSet) {
         if (update.$addToSet.users) {
           const u: User = update.$addToSet.users;
@@ -109,6 +117,7 @@ export const RoomModel = {
         }
       }
 
+      // $push operations
       if (update.$push?.cards) {
         const c: Card = update.$push.cards;
         await client.query(
@@ -117,6 +126,7 @@ export const RoomModel = {
         );
       }
 
+      // $pull operations
       if (update.$pull?.users) {
         if (update.$pull.users.id) {
           await client.query('delete from room_users where room_id=$1 and id=$2', [roomId, update.$pull.users.id]);
@@ -139,7 +149,7 @@ export const RoomModel = {
   },
 
   async updateOne(filter: any, update: any): Promise<void> {
-    const roomId: string = filter.id;
+    // supports pulling both likes/dislikes and adding a vote
     const cardId: string = filter['cards.id'];
     const client = await pool.connect();
     try {
@@ -147,10 +157,15 @@ export const RoomModel = {
       if (update.$pull) {
         const removeUserFromLikes = update.$pull[`cards.$.likes`];
         const removeUserFromDislikes = update.$pull[`cards.$.dislikes`];
-        const userIdToRemove = removeUserFromLikes || removeUserFromDislikes;
-        if (userIdToRemove) {
-          await client.query('delete from card_votes where card_id=$1 and user_id=$2', [cardId, userIdToRemove]);
+        if (removeUserFromLikes) {
+          await client.query('delete from card_votes where card_id=$1 and user_id=$2', [cardId, removeUserFromLikes]);
         }
+        if (removeUserFromDislikes) {
+          await client.query('delete from card_votes where card_id=$1 and user_id=$2', [cardId, removeUserFromDislikes]);
+        }
+      }
+      if (update.$addToSet) {
+        // no-op here; handled in service with findOneAndUpdate
       }
       await client.query('COMMIT');
     } catch (e) {

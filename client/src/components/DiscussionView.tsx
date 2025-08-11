@@ -85,18 +85,20 @@ const DiscussionView: React.FC<Props> = observer(({ store }) => {
           width: '100%',
           justifyContent: 'center'
         }}>
-          <Tooltip title="Предыдущая карточка">
-            <span>
-              <IconButton 
-                onClick={handlePrevious}
-                disabled={currentIndex === 0}
-                size="large"
-                sx={{ transform: 'scale(1.2)' }}
-              >
-                <NavigateBefore />
-              </IconButton>
-            </span>
-          </Tooltip>
+          {store.isAdmin && (
+            <Tooltip title="Предыдущая карточка">
+              <span>
+                <IconButton 
+                  onClick={handlePrevious}
+                  disabled={currentIndex === 0}
+                  size="large"
+                  sx={{ transform: 'scale(1.2)' }}
+                >
+                  <NavigateBefore />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
 
           <Paper
             elevation={3}
@@ -143,18 +145,20 @@ const DiscussionView: React.FC<Props> = observer(({ store }) => {
             </Box>
           </Paper>
 
-          <Tooltip title="Следующая карточка">
-            <span>
-              <IconButton
-                onClick={handleNext}
-                disabled={currentIndex === sortedCards.length - 1}
-                size="large"
-                sx={{ transform: 'scale(1.2)' }}
-              >
-                <NavigateNext />
-              </IconButton>
-            </span>
-          </Tooltip>
+          {store.isAdmin && (
+            <Tooltip title="Следующая карточка">
+              <span>
+                <IconButton
+                  onClick={handleNext}
+                  disabled={currentIndex === sortedCards.length - 1}
+                  size="large"
+                  sx={{ transform: 'scale(1.2)' }}
+                >
+                  <NavigateNext />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
         </Box>
       </Box>
     </Box>

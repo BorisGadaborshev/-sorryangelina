@@ -185,7 +185,12 @@ export class RoomService {
     return room ? this.convertToRoom(room) : null;
   }
 
-  static async updatePhase(roomId: string, phase: 'creation' | 'voting' | 'discussion', userId: string): Promise<Room | null> {
+  static async updatePhase(
+    roomId: string,
+    phase: 'creation' | 'voting' | 'discussion',
+    userId: string,
+    userName?: string
+  ): Promise<Room | null> {
     console.log('Attempting to update phase:', { roomId, phase, userId });
     
     // Получаем комнату и проверяем существование
@@ -195,15 +200,21 @@ export class RoomService {
       return null;
     }
 
-    // Находим пользователя
-    const user = room.users.find(u => u.id === userId);
+    // Находим пользователя по id, иначе по имени (на случай смены socket.id)
+    let user = room.users.find(u => u.id === userId);
+    if (!user && userName) {
+      user = room.users.find(u => u.name === userName);
+    }
+
     if (!user) {
-      console.log('User not found for phase update:', { userId, availableUsers: room.users });
+      console.log('User not found for phase update:', { userId, userName, availableUsers: room.users });
       return null;
     }
 
-    // Проверяем только роль админа
-    const hasAdminRole = user.role === 'admin';
+    // Проверяем право: админ по роли, или владелец комнаты по имени, или первый пользователь
+    const isOwnerByName = userName ? userName === room.owner : false;
+    const isFirstUser = room.users.length > 0 && room.users[0].name === user.name;
+    const hasAdminRole = user.role === 'admin' || isOwnerByName || isFirstUser;
     
     console.log('Checking phase update permissions:', {
       userName: user.name,
@@ -221,7 +232,7 @@ export class RoomService {
     // Обновляем фазу
     const updatedRoom = await RoomModel.findOneAndUpdate(
       { id: roomId },
-      { phase },
+      { $set: { phase } },
       { new: true }
     );
 
@@ -273,13 +284,7 @@ export class RoomService {
   }
 
   static async getAllRooms(): Promise<Room[]> {
-    const rooms = await RoomModel.find({}, {
-      id: 1,
-      owner: 1,
-      phase: 1,
-      users: 1,
-      _id: 0
-    });
+    const rooms = await RoomModel.find();
     return rooms.map(room => this.convertToRoom(room));
   }
 
@@ -358,7 +363,7 @@ export class RoomService {
   }
 
   static async clearDatabase(): Promise<void> {
-    await RoomModel.deleteMany({});
+    await RoomModel.deleteMany();
     console.log('Database cleared successfully');
   }
 

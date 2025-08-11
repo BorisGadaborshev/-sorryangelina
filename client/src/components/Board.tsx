@@ -79,6 +79,7 @@ const Board: React.FC<Props> = observer(({ store }) => {
   );
 
   const renderContent = () => {
+
     switch (store.phase) {
       case 'discussion':
         return <DiscussionView store={store} />;

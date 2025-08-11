@@ -4,27 +4,17 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import { Room, User, Card, RoomState } from './types';
 import bcrypt from 'bcryptjs';
-import mongoose from 'mongoose';
 import { RoomService } from './services/RoomService';
 import dotenv from 'dotenv';
 import path from 'path';
+import { connectDB } from './config/database';
 
 dotenv.config();
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/retro-board';
-
-// Подключение к MongoDB
-mongoose.connect(MONGODB_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
-  .catch((error) => {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
-  });
-
-mongoose.connection.on('error', (err) => {
-  console.error('MongoDB error:', err);
+// Connect to Postgres
+connectDB().catch((err) => {
+  console.error('PostgreSQL connection error:', err);
+  process.exit(1);
 });
 
 const app = express();
@@ -252,6 +242,7 @@ io.on('connection', (socket) => {
     if (!currentUser) return;
 
     try {
+      console.log('Received add-card event:', { text, type, column, userId: currentUser.id });
       const room = await RoomService.getRoom(currentUser.roomId);
       if (!room || room.phase !== 'creation') return;
 
@@ -275,6 +266,7 @@ io.on('connection', (socket) => {
         rooms.set(currentUser.roomId, updatedRoom);
         
         // Отправляем обновление всем клиентам в комнате
+        console.log('Broadcasting card-added to room:', currentUser.roomId);
         io.to(currentUser.roomId).emit('card-added', card);
         io.to(currentUser.roomId).emit('state-updated', {
           cards: updatedRoom.cards,

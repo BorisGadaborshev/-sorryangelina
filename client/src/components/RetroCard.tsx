@@ -16,20 +16,20 @@ const RetroCard: React.FC<Props> = observer(({ card, index, store }) => {
   const [text, setText] = useState(card.text);
 
   const handleEdit = () => {
-    if (store.canEditCard(card) && store.phase === 'creation') {
+    if (store.canEditCard(card) && (store.phase === 'creation' || store.phase === 'discussion')) {
       setIsEditing(true);
     }
   };
 
   const handleSave = () => {
-    if (text.trim() && store.socket && store.phase === 'creation' && store.canEditCard(card)) {
+    if (text.trim() && store.socket && (store.phase === 'creation' || store.phase === 'discussion') && store.canEditCard(card)) {
       store.socket.emit('update-card', { cardId: card.id, text: text.trim() });
       setIsEditing(false);
     }
   };
 
   const handleDelete = () => {
-    if (store.canEditCard(card) && store.socket && store.phase === 'creation') {
+    if (store.canEditCard(card) && store.socket && (store.phase === 'creation' || store.phase === 'discussion')) {
       store.socket.emit('delete-card', { cardId: card.id });
     }
   };
@@ -46,7 +46,7 @@ const RetroCard: React.FC<Props> = observer(({ card, index, store }) => {
     suggestion: '#e3f2fd'
   }[card.type];
 
-  const isEditingAllowed = store.phase === 'creation';
+  const isEditingAllowed = (store.phase === 'creation' || (store.phase === 'discussion' && store.canEditCard(card)));
   const currentUserId = store.currentUser?.id || '';
   const hasLiked = card.likes?.includes(currentUserId) || false;
   const hasDisliked = card.dislikes?.includes(currentUserId) || false;

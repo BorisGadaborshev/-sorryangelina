@@ -16,7 +16,8 @@ export class SocketService {
 
     // Initialize socket with updated configuration
     this.socket = io(serverUrl, {
-      transports: ['websocket'],
+      path: '/socket.io',
+      transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,

@@ -42,6 +42,7 @@ const RetroColumn: React.FC<Props> = observer(({ title, type, columnIndex, store
   useEffect(() => {
     const filteredCards = store.cards.filter(card => card.column === columnIndex);
     setLocalCards(filteredCards);
+    console.log(store.cards)
   }, [store.cards, columnIndex]);
 
   const handleAddCard = () => {
