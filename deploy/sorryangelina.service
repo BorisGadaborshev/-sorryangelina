@@ -1,0 +1,32 @@
+[Unit]
+Description=Sorry Angelina Retro Board Server
+Documentation=https://github.com/yourusername/sorryangelina
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/sorryangelina/server
+ExecStart=/usr/bin/node dist/server.js
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sorryangelina
+
+# Environment variables
+Environment=NODE_ENV=production
+Environment=PORT=3001
+Environment=DATABASE_URL=postgres://sorryangelina:sorryangelina@localhost:5432/sorryangelina
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/sorryangelina/server/logs
+
+[Install]
+WantedBy=multi-user.target

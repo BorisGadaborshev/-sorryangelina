@@ -12,14 +12,14 @@ export class SocketService {
     
     const isProd = process.env.NODE_ENV === 'production';
     const serverUrl = isProd
-      ? (process.env.REACT_APP_SERVER_URL || window.location.origin)
+      ? 'https://sorryangelina.ru'
       : 'http://localhost:3001';
 
     // Initialize socket with updated configuration
     this.socket = io(serverUrl, {
       path: '/socket.io',
-      transports: isProd ? ['polling'] : ['websocket', 'polling'],
-      upgrade: !isProd,
+      transports: ['websocket', 'polling'],
+      upgrade: true,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
