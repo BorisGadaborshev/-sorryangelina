@@ -10,14 +10,16 @@ export class SocketService {
     console.log('Initializing socket connection...');
     this.store = store;
     
-    const serverUrl = process.env.NODE_ENV === 'production'
+    const isProd = process.env.NODE_ENV === 'production';
+    const serverUrl = isProd
       ? 'https://sorryangelina.vercel.app'
       : 'http://localhost:3001';
 
     // Initialize socket with updated configuration
     this.socket = io(serverUrl, {
       path: '/socket.io',
-      transports: ['websocket', 'polling'],
+      transports: isProd ? ['polling'] : ['websocket', 'polling'],
+      upgrade: !isProd,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
