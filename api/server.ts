@@ -29,7 +29,8 @@ const io = new SocketServer(httpServer, {
     methods: ['GET', 'POST'],
     credentials: true
   },
-  path: '/socket.io/',
+  // Use consistent path without trailing slash
+  path: '/socket.io',
   transports: ['websocket', 'polling'],
   addTrailingSlash: false
 });
@@ -213,10 +214,15 @@ export default async function handler(req: any, res: any) {
       }
 
       // Handle Socket.IO
-      const { pathname } = new URL(req.url, 'http://localhost');
-      
-      if (pathname?.startsWith('/socket.io/')) {
-        // Let Socket.IO handle the request
+      const { pathname, search } = new URL(req.url, 'http://localhost');
+      const isSocketPath =
+        pathname === '/socket.io' ||
+        pathname?.startsWith('/socket.io/') ||
+        pathname === '/api/server' ||
+        pathname?.startsWith('/api/server');
+      const looksLikeEngineIo = (search || '').includes('EIO=');
+
+      if (isSocketPath || looksLikeEngineIo) {
         io.engine.handleRequest(req, res);
         return;
       }
