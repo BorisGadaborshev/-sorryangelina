@@ -12,7 +12,7 @@ export class SocketService {
     
     const isProd = process.env.NODE_ENV === 'production';
     const serverUrl = isProd
-      ? 'https://sorryangelina.vercel.app'
+      ? (process.env.REACT_APP_SERVER_URL || window.location.origin)
       : 'http://localhost:3001';
 
     // Initialize socket with updated configuration
