@@ -3,11 +3,13 @@ import { Pool } from 'pg';
 const DATABASE_URL = process.env.DATABASE_URL;
 const ssl = process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined;
 
-export const pool = new Pool(
-  DATABASE_URL
-    ? { connectionString: DATABASE_URL, ssl }
-    : { ssl }
-);
+const pool = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD, // это должно быть строкой
+  port: process.env.DB_PORT,
+});
 
 export const connectDB = async (): Promise<void> => {
   // Initialize connection and ensure schema exists
