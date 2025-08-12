@@ -229,10 +229,15 @@ export default async function handler(req: any, res: any) {
       pathname === '/socket.io' ||
       pathname?.startsWith('/socket.io/') ||
       pathname === '/api/server' ||
-      pathname?.startsWith('/api/server');
+      pathname?.startsWith('/api/server') ||
+      pathname === '/api/socket.io' ||
+      pathname?.startsWith('/api/socket.io/');
     const looksLikeEngineIo = (search || '').includes('EIO=');
 
     if (isSocketPath || looksLikeEngineIo) {
+      // Ensure engine.io path aligns with configured io path
+      // @ts-ignore
+      req.url = '/socket.io' + (new URL(req.url, 'http://localhost').search || '');
       io.engine.handleRequest(req, res);
       return;
     }

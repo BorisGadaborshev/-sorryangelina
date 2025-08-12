@@ -18,6 +18,14 @@
       "destination": "/api/server"
     },
     {
+      "source": "/api/rooms",
+      "destination": "/api/server"
+    },
+    {
+      "source": "/api/health",
+      "destination": "/api/server"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
