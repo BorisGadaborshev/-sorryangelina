@@ -43,7 +43,9 @@ const Login: React.FC<Props> = observer(({ store }) => {
 
   const fetchAvailableRooms = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/rooms');
+      const isProd = process.env.NODE_ENV === 'production';
+      const apiBase = isProd ? '' : 'http://localhost:3001';
+      const response = await fetch(`${apiBase}/api/rooms`);
       const rooms = await response.json();
       setAvailableRooms(rooms);
     } catch (error) {
