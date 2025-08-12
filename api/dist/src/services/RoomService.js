@@ -130,6 +130,10 @@ class RoomService {
         const updatedRoom = await Room_1.RoomModel.findOneAndUpdate({ id: roomId }, { $set: { phase } }, { new: true });
         return updatedRoom ? this.convertToRoom(updatedRoom) : null;
     }
+    static async getAllRooms() {
+        const rooms = await Room_1.RoomModel.find();
+        return rooms.map((r) => this.convertToRoom(r));
+    }
     static convertToRoom(doc) {
         const { id, owner, phase, users, cards } = doc;
         return { id, owner, phase, users, cards };

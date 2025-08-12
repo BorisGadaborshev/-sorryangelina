@@ -28,7 +28,7 @@ const io = new socket_io_1.Server(httpServer, {
         methods: ['GET', 'POST'],
         credentials: true
     },
-    path: '/socket.io/',
+    path: '/socket.io',
     transports: ['websocket', 'polling'],
     addTrailingSlash: false
 });
@@ -171,23 +171,32 @@ if (process.env.NODE_ENV !== 'production') {
 }
 async function handler(req, res) {
     try {
-        if (process.env.NODE_ENV === 'production') {
-            if (req.method === 'GET') {
-                if (req.url === '/health') {
-                    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-                    return;
-                }
-            }
-            const { pathname } = new URL(req.url, 'http://localhost');
-            if (pathname === null || pathname === void 0 ? void 0 : pathname.startsWith('/socket.io/')) {
-                io.engine.handleRequest(req, res);
-                return;
-            }
-            res.status(404).end();
+        const { pathname, search } = new URL(req.url, 'http://localhost');
+        if (req.method === 'GET' && (pathname === '/api/health' || pathname === '/health')) {
+            res.json({ status: 'ok', timestamp: new Date().toISOString() });
+            return;
         }
-        else {
-            res.status(200).json({ status: 'Development mode active' });
+        if (req.method === 'GET' && pathname === '/api/rooms') {
+            try {
+                const rooms = await RoomService_1.RoomService.getAllRooms();
+                res.json(rooms.map((r) => ({ id: r.id, usersCount: r.users.length, phase: r.phase })));
+            }
+            catch (e) {
+                console.error('Error getting rooms (serverless):', e);
+                res.status(500).json({ error: 'Failed to get rooms' });
+            }
+            return;
         }
+        const isSocketPath = pathname === '/socket.io' ||
+            (pathname === null || pathname === void 0 ? void 0 : pathname.startsWith('/socket.io/')) ||
+            pathname === '/api/server' ||
+            (pathname === null || pathname === void 0 ? void 0 : pathname.startsWith('/api/server'));
+        const looksLikeEngineIo = (search || '').includes('EIO=');
+        if (isSocketPath || looksLikeEngineIo) {
+            io.engine.handleRequest(req, res);
+            return;
+        }
+        res.status(404).end();
     }
     catch (error) {
         console.error('Server error:', error);

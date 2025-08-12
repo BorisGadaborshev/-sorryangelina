@@ -85,7 +85,7 @@ const io = new socket_io_1.Server(httpServer, {
         methods: ["GET", "POST"],
         credentials: true
     },
-    path: "/socket.io/",
+    path: "/socket.io",
     pingTimeout: 60000,
     pingInterval: 25000,
     connectTimeout: 45000,

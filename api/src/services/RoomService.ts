@@ -167,6 +167,11 @@ export class RoomService {
     return updatedRoom ? this.convertToRoom(updatedRoom) : null;
   }
 
+  static async getAllRooms(): Promise<Room[]> {
+    const rooms = await RoomModel.find();
+    return rooms.map((r) => this.convertToRoom(r));
+  }
+
   private static convertToRoom(doc: RoomDocument): Room {
     const { id, owner, phase, users, cards } = doc;
     return { id, owner, phase, users, cards };
