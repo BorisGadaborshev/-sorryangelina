@@ -255,7 +255,30 @@ export class RoomService {
     userId: string, 
     voteType: 'like' | 'dislike'
   ): Promise<Room | null> {
-    // First remove user from both likes and dislikes
+    // Fetch current room to inspect existing votes
+    const current = await RoomModel.findOne({ id: roomId });
+    if (!current) return null;
+    const card = current.cards.find(c => c.id === cardId);
+    if (!card) return null;
+
+    const alreadyLiked = (card.likes || []).includes(userId);
+    const alreadyDisliked = (card.dislikes || []).includes(userId);
+
+    // If user clicks the same vote again → toggle off (remove only)
+    if ((voteType === 'like' && alreadyLiked) || (voteType === 'dislike' && alreadyDisliked)) {
+      await RoomModel.updateOne(
+        { id: roomId, 'cards.id': cardId },
+        { 
+          $pull: {
+            [`cards.$.${voteType}s`]: userId
+          }
+        }
+      );
+      const updated = await RoomModel.findOne({ id: roomId });
+      return updated ? this.convertToRoom(updated) : null;
+    }
+
+    // Otherwise switch the vote: remove from both, then add chosen
     await RoomModel.updateOne(
       { id: roomId, 'cards.id': cardId },
       { 
@@ -266,7 +289,6 @@ export class RoomService {
       }
     );
 
-    // Then add the vote to the appropriate array
     const room = await RoomModel.findOneAndUpdate(
       { id: roomId, 'cards.id': cardId },
       { 

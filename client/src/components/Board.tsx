@@ -4,7 +4,6 @@ import { Box, AppBar, Toolbar, Typography, Button, ButtonGroup, CircularProgress
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import PeopleIcon from '@mui/icons-material/People';
-import DeleteIcon from '@mui/icons-material/Delete';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import RetroColumn from './RetroColumn';
 import UserList from './UserList';
@@ -52,9 +51,6 @@ const Board: React.FC<Props> = observer(({ store }) => {
     );
   }
 
-  const readyUsersCount = store.users.filter(u => u.isReady).length;
-  const totalUsers = store.users.length;
-
   const renderColumns = () => (
     <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
       <RetroColumn
@@ -79,7 +75,6 @@ const Board: React.FC<Props> = observer(({ store }) => {
   );
 
   const renderContent = () => {
-
     switch (store.phase) {
       case 'discussion':
         return <DiscussionView store={store} />;
@@ -142,15 +137,6 @@ const Board: React.FC<Props> = observer(({ store }) => {
                     Обсуждение
                   </Button>
                 </ButtonGroup>
-                <Tooltip title="Удалить комнату">
-                  <IconButton
-                    color="error"
-                    onClick={() => store.socketService?.deleteRoom()}
-                    size="small"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip>
               </Box>
             ) : null;
           })()}
