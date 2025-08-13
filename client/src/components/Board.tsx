@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Box, AppBar, Toolbar, Typography, Button, ButtonGroup, CircularProgress, IconButton, Tooltip } from '@mui/material';
+import { Box, AppBar, Toolbar, Typography, Button, ButtonGroup, CircularProgress, IconButton, Tooltip, Tabs, Tab, useMediaQuery } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import PeopleIcon from '@mui/icons-material/People';
@@ -17,6 +17,8 @@ interface Props {
 const Board: React.FC<Props> = observer(({ store }) => {
   const [isReady, setIsReady] = useState(false);
   const [isUserListVisible, setIsUserListVisible] = useState(true);
+  const isMobile = useMediaQuery('(max-width:600px)');
+  const [mobileTab, setMobileTab] = useState<number>(0); // 0 - доска, 1 - участники
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -52,7 +54,7 @@ const Board: React.FC<Props> = observer(({ store }) => {
   }
 
   const renderColumns = () => (
-    <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+    <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 2, width: '100%' }}>
       <RetroColumn
         title="Что прошло хорошо"
         type="liked"
@@ -88,11 +90,11 @@ const Board: React.FC<Props> = observer(({ store }) => {
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <Toolbar sx={{ gap: 1, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, mt: '20px' }}>
             Ретроспектива - Комната: {store.room?.id}
           </Typography>
-          <Typography variant="subtitle1" sx={{ mr: 2 }}>
+          <Typography variant="subtitle1" sx={{ mr: isMobile ? 0 : 2 }}>
             Этап: {getPhaseTranslation(store.phase)}
           </Typography>
           {(() => {
@@ -140,32 +142,41 @@ const Board: React.FC<Props> = observer(({ store }) => {
               </Box>
             ) : null;
           })()}
-          <Box sx={{ ml: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton
-              color="inherit"
-              onClick={() => setIsUserListVisible(!isUserListVisible)}
-              size="small"
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <PeopleIcon sx={{ mr: 0.5 }} />
-                <Typography variant="caption" sx={{ mr: 1 }}>
-                  {store.users.length}
-                </Typography>
-                {isUserListVisible ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-              </Box>
-            </IconButton>
-            <Tooltip title="Выйти из комнаты">
+          {isMobile ? (
+            <Tabs value={mobileTab} onChange={(_, v) => setMobileTab(v)} textColor="inherit" indicatorColor="secondary" sx={{ width: '100%' }}>
+              <Tab label="Доска" />
+              <Tab label={`Участники (${store.users.length})`} />
+            </Tabs>
+          ) : (
+            <Box sx={{ ml: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
               <IconButton
                 color="inherit"
-                onClick={() => store.socketService?.leaveRoom()}
+                onClick={() => setIsUserListVisible(!isUserListVisible)}
                 size="small"
               >
-                <ExitToAppIcon />
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <PeopleIcon sx={{ mr: 0.5 }} />
+                  <Typography variant="caption" sx={{ mr: 1 }}>
+                    {store.users.length}
+                  </Typography>
+                  {isUserListVisible ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+                </Box>
               </IconButton>
-            </Tooltip>
-          </Box>
+              <Tooltip title="Выйти из комнаты">
+                <IconButton
+                  color="inherit"
+                  onClick={() => store.socketService?.leaveRoom()}
+                  size="small"
+                >
+                  <ExitToAppIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          )}
         </Toolbar>
       </AppBar>
+
+      {/* Контент */}
       <Box sx={{ 
         display: 'flex', 
         flexGrow: 1, 
@@ -174,31 +185,52 @@ const Board: React.FC<Props> = observer(({ store }) => {
         height: 'calc(100vh - 64px)',
         overflow: 'hidden'
       }}>
-        <Box sx={{ 
-          width: isUserListVisible ? 300 : 0,
-          flexShrink: 0,
-          overflowY: 'auto',
-          bgcolor: 'background.paper',
-          borderRadius: 1,
-          boxShadow: 1,
-          transition: 'width 0.2s ease-in-out',
-          visibility: isUserListVisible ? 'visible' : 'hidden'
-        }}>
-          <UserList 
-            users={store.users}
-            onlineUsers={store.users.map(u => u.id)}
-            currentUserId={store.currentUser.id}
-            currentPhase={store.phase}
-            onReadyStateChange={handleReadyStateChange}
-            store={store}
-          />
-        </Box>
-        <Box sx={{ 
-          flexGrow: 1,
-          overflowY: 'auto'
-        }}>
-          {renderContent()}
-        </Box>
+        {isMobile ? (
+          mobileTab === 1 ? (
+            <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+              <UserList 
+                users={store.users}
+                onlineUsers={store.users.map(u => u.id)}
+                currentUserId={store.currentUser.id}
+                currentPhase={store.phase}
+                onReadyStateChange={handleReadyStateChange}
+                store={store}
+              />
+            </Box>
+          ) : (
+            <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+              {renderContent()}
+            </Box>
+          )
+        ) : (
+          <>
+            <Box sx={{ 
+              width: isUserListVisible ? 300 : 0,
+              flexShrink: 0,
+              overflowY: 'auto',
+              bgcolor: 'background.paper',
+              borderRadius: 1,
+              boxShadow: 1,
+              transition: 'width 0.2s ease-in-out',
+              visibility: isUserListVisible ? 'visible' : 'hidden'
+            }}>
+              <UserList 
+                users={store.users}
+                onlineUsers={store.users.map(u => u.id)}
+                currentUserId={store.currentUser.id}
+                currentPhase={store.phase}
+                onReadyStateChange={handleReadyStateChange}
+                store={store}
+              />
+            </Box>
+            <Box sx={{ 
+              flexGrow: 1,
+              overflowY: 'auto'
+            }}>
+              {renderContent()}
+            </Box>
+          </>
+        )}
       </Box>
     </Box>
   );
